@@ -52,12 +52,17 @@ class TesterBaseClass(object):
             config["datasets"][args.dataset]["data_dir"],
         )
 
-        self.model_dir = os.path.join(
-            self.root_dir,
-            "trained_models",
-            # use_case_dir,
-            args.dataset.lower(),
-        )  # directory where the model is saved
+        # Allow the caller to override the model directory via --model_dir so
+        # that pre-trained weights from a different dataset can be applied
+        # directly to a new dataset (e.g. PrivacyAlert weights on CustomDataset).
+        if hasattr(args, "model_dir") and args.model_dir is not None:
+            self.model_dir = args.model_dir
+        else:
+            self.model_dir = os.path.join(
+                self.root_dir,
+                "trained_models",
+                args.dataset.lower(),
+            )  # directory where the model is saved
 
         self.res_dir = os.path.join(
             self.root_dir,
@@ -65,6 +70,13 @@ class TesterBaseClass(object):
             # use_case_dir,
             args.dataset.lower(),
         )  # directory where to save the predictions
+
+        # Optional explicit model filename override (--model_filename).
+        self.model_filename_override = (
+            args.model_filename
+            if hasattr(args, "model_filename") and args.model_filename is not None
+            else None
+        )
 
         self.params = config["params"]
         self.num_workers = config["num_workers"]
@@ -115,20 +127,38 @@ class TesterBaseClass(object):
         return checkpoint
 
     def load_model(self, training_mode, model_mode):
-        """ """
-        if training_mode == "final":
-            prefix_net = "last_acc_"
-        else:
-            prefix_net = model_mode + "_acc_"
+        """Load model weights from a checkpoint file.
 
-        checkpoint = self.get_model(
-            self.get_filename(
+        When ``--model_filename`` was supplied on the command line the weights
+        are loaded directly from that path, which makes it possible to apply
+        pre-trained weights from *any* dataset to a new one (e.g. use weights
+        trained on PrivacyAlert / IPD to run inference on CustomDataset).
+        """
+        if self.model_filename_override is not None:
+            # Direct path to the checkpoint file was provided.
+            fullpathname = self.model_filename_override
+            # Set checkpoint_dir to the directory of the file so that the
+            # testing log can be written there.
+            self.checkpoint_dir = os.path.dirname(
+                os.path.abspath(fullpathname)
+            )
+            checkpoint = torch.load(
+                fullpathname, map_location=lambda storage, loc: storage
+            )
+        else:
+            if training_mode == "final":
+                prefix_net = "last_acc_"
+            else:
+                prefix_net = model_mode + "_acc_"
+
+            checkpoint = self.get_model(
+                self.get_filename(
+                    self.net.get_model_name(),
+                    ".pth",  # extension of the models
+                    prefix=prefix_net,
+                ),
                 self.net.get_model_name(),
-                ".pth",  # extension of the models
-                prefix=prefix_net,
-            ),
-            self.net.get_model_name(),
-        )
+            )
 
         self.net.load_state_dict(checkpoint["net"])
 
@@ -437,6 +467,7 @@ class TesterImageModels(TesterBaseClass):
             num_classes=self.n_out_classes,
             fold_id=self.params["fold_id"],
             image_size=net_params["img_size"],
+            seed=self.params["seed"],
         )
 
         data_wrapper.load_split_set(
@@ -490,7 +521,7 @@ class TesterImageModels(TesterBaseClass):
                         imgs_var, image_name, Variable(o_im_size).to(device)
                     )
 
-                elif model_name == "rnp2ftp":
+                elif model_name in ["rnp2ftp", "resnetprivacy"]:
                     outputs = self.net(imgs_var)
 
                 else:
@@ -641,6 +672,7 @@ class TesterCNNandSVM(object):
             num_classes=self.n_out_classes,
             fold_id=self.params["fold_id"],
             image_size=net_params["img_size"],
+            seed=self.params["seed"],
         )
 
         data_wrapper.load_split_set(

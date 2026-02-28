@@ -1122,6 +1122,7 @@ class TrainerImageModels(TrainerBaseClass):
             num_classes=self.n_out_classes,
             fold_id=self.params["fold_id"],
             image_size=net_params["img_size"],
+            seed=self.params["seed"],
         )
         data_wrapper.load_split_set(
             dataset_name,
@@ -1214,7 +1215,7 @@ class TrainerImageModels(TrainerBaseClass):
                 outputs, _ = self.net(img_var)
                 # outputs, _ = model(img_var)
 
-            elif model_name == "rnp2ftp":
+            elif model_name in ["rnp2ftp", "resnetprivacy"]:
                 outputs = self.net(img_var)
 
             elif model_name in ["gip"]:
@@ -1350,7 +1351,7 @@ class TrainerImageModels(TrainerBaseClass):
                     outputs, _ = self.net(imgs_var)
                     # outputs, _ = model(img_var)
 
-                elif model_name == "rnp2ftp":
+                elif model_name in ["rnp2ftp", "resnetprivacy"]:
                     outputs = self.net(imgs_var)
 
                 elif model_name in ["gip"]:

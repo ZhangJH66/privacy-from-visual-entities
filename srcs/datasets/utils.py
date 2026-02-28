@@ -66,6 +66,9 @@ privacy_classes = {
     "VISPR": {
         "binary": {0: "public", 1: "private"},
     },
+    "CustomDataset": {
+        "binary": {0: "private", 1: "non_private"},
+    },
 }
 
 

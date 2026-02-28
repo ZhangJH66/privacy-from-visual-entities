@@ -85,7 +85,7 @@ class PerformanceMeasuresTracker(object):
 
     def __init__(self, dataset="IPD", n_cls=2, beta=2):
         """ """
-        assert dataset in ["GIPS", "IPD", "PicAlert", "PrivacyAlert", "VISPR"]
+        assert dataset in ["GIPS", "IPD", "PicAlert", "PrivacyAlert", "VISPR", "CustomDataset"]
         self.dataset = dataset
 
         self.n_classes = n_cls
