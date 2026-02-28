@@ -744,7 +744,7 @@ def GetParser(desc=""):
     parser.add_argument(
         "--dataset",
         type=str,
-        choices=["PrivacyAlert", "IPD"],
+        choices=["PrivacyAlert", "IPD", "CustomDataset"],
     )
 
     parser.add_argument(

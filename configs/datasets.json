@@ -20,6 +20,10 @@
         "IPD" : {
             "name" : "IPD",
             "data_dir" : "curated_ipd"
+        },
+        "CustomDataset" : {
+            "name" : "CustomDataset",
+            "data_dir" : "custom_dataset"
         }
     }
 }

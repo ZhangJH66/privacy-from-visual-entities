@@ -30,6 +30,7 @@ from srcs.nets.s2p import SceneToPrivacyMLPClassifier as S2PMLPnet
 from srcs.nets.resnet_ft import ResNetPlacesFineTuningPrivacy as RNP2FTPnet
 from srcs.nets.resnet_svm import ResNetPlacesAndTags as RNP2SVMnet
 from srcs.nets.resnet_svm import ConvNetAndTags as TAGSVMnet
+from srcs.nets.resnet_privacy import ResNetPrivacy as ResNetPrivacyNet
 
 
 # List of image models (predefined names)
@@ -42,6 +43,7 @@ IMAGE_MODELS = [
     "RNP2FTP",
     "RNP2SVM",
     "TAGSVM",
+    "ResNetPrivacy",
 ]
 
 
@@ -85,6 +87,10 @@ def TAGSVM(net_params):
     return TAGSVMnet(net_params)
 
 
+def ResNetPrivacy(net_params):
+    return ResNetPrivacyNet(net_params)
+
+
 def PersonRule(net_params):
     """
 
@@ -107,6 +113,7 @@ def gnn_model(model_name, net_params):
         RNP2SVM=RNP2SVM,
         TAGSVM=TAGSVM,
         PersonRule=PersonRule,
+        ResNetPrivacy=ResNetPrivacy,
     )
 
     return models[model_name](net_params)

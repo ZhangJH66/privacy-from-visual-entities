@@ -19,6 +19,7 @@ import pandas as pd
 from tqdm import tqdm
 
 from srcs.datasets.imageprivacy import ImagePrivacyDatasets
+from srcs.datasets.folder_dataset import FolderPrivacyDataset
 
 # from srcs.datasets.gips import GraphImagePrivacySubset
 from srcs.datasets.graph_image_privacy import GraphImagePrivacyDatasets
@@ -112,6 +113,7 @@ class WrapperImageDatasets(WrapperDatasetsBase):
         num_classes=2,
         fold_id=0,
         image_size=448,
+        seed=789,
     ):
         """Initialisation of the Wrapper Class
 
@@ -127,6 +129,7 @@ class WrapperImageDatasets(WrapperDatasetsBase):
         )
 
         self.image_size = image_size
+        self.seed = seed
 
     def load_split(self, dataset_name, partition, split_mode, _b_filter_imgs):
         """ """
@@ -142,6 +145,21 @@ class WrapperImageDatasets(WrapperDatasetsBase):
             b_filter_imgs=_b_filter_imgs,
             img_size=self.image_size,
             name=dataset_name,
+        )
+
+        return data_split
+
+    def load_folder_split(self, partition, split_mode):
+        """Load a split of the folder-based custom dataset."""
+        self.print_load_set(split_mode)
+
+        data_split = FolderPrivacyDataset(
+            data_dir=self.data_dir,
+            partition=partition,
+            split=split_mode,
+            num_classes=self.n_out_classes,
+            img_size=self.image_size,
+            seed=self.seed,
         )
 
         return data_split
@@ -163,27 +181,39 @@ class WrapperImageDatasets(WrapperDatasetsBase):
             "PicAlert",
             "VISPR",
             "IPD",
+            "CustomDataset",
         ]
         assert partition in ["crossval", "final", "original"]
         assert mode in ["train", "test"]
 
-        if mode == "train":
-            training_set = self.load_split(
-                dataset_name,
-                partition,
-                "train",
-                b_filter_imgs,
-            )
+        if dataset_name == "CustomDataset":
+            if mode == "train":
+                training_set = self.load_folder_split(partition, "train")
 
-            if (partition == "crossval") | (partition == "original"):
-                validation_set = self.load_split(
-                    dataset_name, partition, "val", b_filter_imgs
+                if (partition == "crossval") | (partition == "original"):
+                    validation_set = self.load_folder_split(partition, "val")
+
+            elif mode == "test":
+                testing_set = self.load_folder_split(partition, "test")
+
+        else:
+            if mode == "train":
+                training_set = self.load_split(
+                    dataset_name,
+                    partition,
+                    "train",
+                    b_filter_imgs,
                 )
 
-        elif mode == "test":
-            testing_set = self.load_split(
-                dataset_name, partition, "test", b_filter_imgs
-            )
+                if (partition == "crossval") | (partition == "original"):
+                    validation_set = self.load_split(
+                        dataset_name, partition, "val", b_filter_imgs
+                    )
+
+            elif mode == "test":
+                testing_set = self.load_split(
+                    dataset_name, partition, "test", b_filter_imgs
+                )
 
         # Set the class variables (this is important if more datasets are used above)
         if mode == "train":
