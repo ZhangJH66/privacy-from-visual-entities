@@ -7,19 +7,19 @@
 #   <DATA_DIR>/non_private/    <- non-privacy images (label 1)
 #
 # Usage:
-#   bash scripts/run_custom_dataset.sh
+#   DATA_DIR=/path/to/your/dataset bash scripts/run_custom_dataset.sh
 #
-# Before running, set DATA_DIR below (or export it as an environment variable)
-# to the absolute path of your dataset root directory.
+# Before running, set DATA_DIR to the absolute path of your dataset root.
+# You must also set data_dir in configs/datasets.json to match DATA_DIR,
+# or set data_prefix to the parent directory and data_dir to the folder name.
 #
 ##############################################################################
 
-DATA_DIR="${DATA_DIR:-/path/to/your/dataset}"
-
-# Update configs/datasets.json so that data_prefix points to the parent
-# of DATA_DIR and data_dir points to the dataset folder name.
-# Alternatively, set data_dir to the full absolute path and leave
-# data_prefix empty (the default).
+if [ -z "${DATA_DIR}" ]; then
+    echo "Error: DATA_DIR is not set."
+    echo "Usage: DATA_DIR=/path/to/your/dataset bash scripts/run_custom_dataset.sh"
+    exit 1
+fi
 
 python srcs/main.py \
     --config configs/custom_dataset_v1.0.json \

@@ -95,7 +95,11 @@ class FolderPrivacyDataset(data.Dataset):
         items = []
         if not os.path.isdir(folder):
             raise FileNotFoundError(
-                "Expected image folder not found: {:s}".format(folder)
+                "Expected image folder not found: {:s}\n"
+                "CustomDataset requires both 'private/' and 'non_private/' "
+                "subdirectories under the data directory: {:s}".format(
+                    folder, self.data_dir
+                )
             )
         for fname in sorted(os.listdir(folder)):
             if fname.lower().endswith(SUPPORTED_EXTENSIONS):
